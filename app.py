@@ -49,11 +49,16 @@ def generate_independent_subnodes(config, super_node_id, cycles):
     subnodes = {}
 
     for i in range(n_subnodes):
-        subnodes[i] = create_series(control_points, boundaries[i], cycles)
+        base = create_series(control_points, boundaries[i], cycles)
+        subnodes[i] = base
+        
+        base_temp = {}
+
+        base_temp['base'] = base
 
         st.download_button(
             label=f'Download for Sub Node {i}',
-            data=pd.DataFrame(subnodes).to_csv(),
+            data=pd.DataFrame(base_temp).to_csv(),
             file_name=f'subnode_{super_node_id}_{i}.csv',
             mime='text/csv'
         )
@@ -74,7 +79,6 @@ def generate_dependent_subnodes(config, super_node_id, cycles, generated_series)
     boundaries = config['boundaries']
     control_points = config['control_points']
 
-    # TODO: Fix logic
     subnodes = {}
 
     for i in range(n_subnodes):
@@ -85,16 +89,21 @@ def generate_dependent_subnodes(config, super_node_id, cycles, generated_series)
 
             value = config['inputs'][j]
 
+            temp = {}
+
+
             for k in range(len(value['connections'])):
                 input_series = pd.Series(generated_series[value['input_supernode']][value['connections'][k]])
+                temp[k] = input_series
 
                 base += input_series * value['weight'] * value['correlation']
-
+        
+        temp['base'] = base
         subnodes[i] = base
 
         st.download_button(
             label=f'Download for Sub Node {i}',
-            data=pd.DataFrame(subnodes).to_csv(),
+            data=pd.DataFrame(temp).to_csv(),
             file_name=f'subnode_{super_node_id}_{i}.csv',
             mime='text/csv'
         )
