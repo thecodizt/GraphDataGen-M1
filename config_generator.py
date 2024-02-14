@@ -56,9 +56,13 @@ def main():
                     correlation = st.number_input(f"Correlation for Incomming Node {j+1} for Super Node {i+1}", -1.0, 1.0, 0.0)
                     weight = st.number_input(f"Weight for Incomming Node {j+1} for Super Node {i+1}", 0.0, 1.0, 0.0)
                     
-                    connection = st.text_input(f"Enter comma separated connections for Incomming node {j+1} for Super Node {i+1}")
+                    connections_main = []
+                    for k in range(n_nodes):
+                        connection = st.text_input(f"Enter comma separated connections for Sub Node {k+1}")
 
-                    connections = list(int(x) for x in connection.split(',')) if connection else []
+                        connections = list(int(x) for x in connection.split(',')) if connection else []
+
+                        connections_main.append(connections)
 
                     expected_lower_bound = st.number_input(f"Enter expected lower bound for Incomming node {j+1} for Super Node {i+1}")
                     expected_upper_bound = st.number_input(f"Enter expected upper bound for Incomming node {j+1} for Super Node {i+1}")

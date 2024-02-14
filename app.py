@@ -8,7 +8,6 @@ import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go 
 
-
 def create_series(control_points, y_range, cycles, noise=0.05 ):
 
     # Sort control points by x value
@@ -86,16 +85,10 @@ def generate_dependent_subnodes(config, super_node_id, cycles, generated_series)
 
             value = config['inputs'][j]
 
-            # st.write(generated_series[value['input_supernode']][0])
+            for k in range(len(value['connections'])):
+                input_series = pd.Series(generated_series[value['input_supernode']][value['connections'][k]])
 
-            input_series = pd.Series(generated_series[value['input_supernode']][0])
-
-            # st.table(generated_series[value['input_supernode']][0])
-
-            base += input_series * value['weight'] * value['correlation']
-
-            # subnodes[i] = input_series
-
+                base += input_series * value['weight'] * value['correlation']
 
         subnodes[i] = base
 
