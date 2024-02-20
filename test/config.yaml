@@ -1,0 +1,47 @@
+n_cycles: 100
+n_supernodes: 2
+supernodes:
+  0:
+    boundaries:
+    - - 1.0
+      - 100.0
+    - - 100.0
+      - 200.0
+    - - 200.0
+      - 300.0
+    control_points:
+    - 0.3
+    - 0.2
+    - 0.9
+    - 0.8
+    - 0.1
+    inputs: []
+    n_incomming_nodes: 0
+    n_subnodes: 3
+    node_type: independent
+  1:
+    boundaries:
+    - - 2.0
+      - 20.0
+    - - 3.0
+      - 30.0
+    control_points:
+    - 0.9
+    - 0.2
+    - 0.1
+    - 0.1
+    - 0.1
+    inputs:
+    - connections:
+      - 0
+      - 1
+      - 0
+      correlation: 0.2
+      expected_lower_bound: 0.0
+      expected_mean: 0.0
+      expected_upper_bound: 0.0
+      input_supernode: 0
+      weight: 0.85
+    n_incomming_nodes: 1
+    n_subnodes: 2
+    node_type: dependent
