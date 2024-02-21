@@ -1,5 +1,40 @@
 import streamlit as st
 import yaml
+from scipy.special import comb
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def bernstein_poly(i, n, t):
+    return comb(n, i) * ( t**(n-i) ) * (1 - t)**i
+
+def bezier_curve(in_points, num=200):
+
+    points = []
+    for i in range(len(in_points)):
+        x = i/(len(in_points)-1)  # fixed x values, evenly spaced
+        y = in_points[i]
+        points.append((x, y))
+    
+    # st.write(points)
+
+    points = np.array(points)
+    N = len(points)
+    t = np.linspace(0, 1, num=num)
+    curve = np.zeros((num, 2))
+    for i in range(N):
+        curve += np.outer(bernstein_poly(i, N - 1, t), points[i])
+
+    fig, ax = plt.subplots()
+    ax.plot(points[:,0], points[:,1], 'ro-', label='Control Points')
+    ax.plot(curve[:,0], curve[:,1], 'b-', label='Spline')
+    ax.legend()
+    ax.grid(True)
+    ax.set_title(f'Spline with {len(in_points)} Control Points')
+    ax.set_xlim([0, 1])
+    ax.set_ylim([0, 1])
+    st.pyplot(fig)
+    # return curve
 
 def get_matrix_input(n, m):
     input_matrix = st.text_input(f"Enter the 2D matrix of shape {n}x{m} values separated by comma, columns seperated by |", key=f"input_matrix_{n}_{m}")
@@ -37,6 +72,8 @@ def main():
 
         if control_points_in:
             control_points = [float(x) for x in control_points_in.split(',')]
+            bezier_curve(control_points, super_nodes_data['n_cycles'])
+
 
         node_type = st.selectbox(f"Select type for Super Node {i+1}", ['independent', 'dependent'])
 
