@@ -3,6 +3,9 @@ import yaml
 from scipy.special import comb
 import numpy as np
 import matplotlib.pyplot as plt
+import streamlit.components.v1 as components
+import networkx as nx
+from pyvis.network import Network
 
 
 def bernstein_poly(i, n, t):
@@ -12,12 +15,10 @@ def bezier_curve(in_points, num=200):
 
     points = []
     for i in range(len(in_points)):
-        x = i/(len(in_points)-1)  # fixed x values, evenly spaced
+        x = i/(len(in_points)-1)
         y = in_points[i]
         points.append((x, y))
     
-    # st.write(points)
-
     points = np.array(points)
     N = len(points)
     t = np.linspace(0, 1, num=num)
@@ -34,22 +35,45 @@ def bezier_curve(in_points, num=200):
     ax.set_xlim([0, 1])
     ax.set_ylim([0, 1])
     st.pyplot(fig)
-    # return curve
 
-def get_matrix_input(n, m):
-    input_matrix = st.text_input(f"Enter the 2D matrix of shape {n}x{m} values separated by comma, columns seperated by |", key=f"input_matrix_{n}_{m}")
-    if input_matrix != "":
-        input_matrix = input_matrix.split('|')
-        input_matrix = [i.split(',') for i in input_matrix]
-        input_matrix = [[float(j) for j in i] for i in input_matrix]
+def create_graph(net):
 
-        if len(input_matrix) != n or len(input_matrix[0]) != m:
-            st.error(f"Shape of input matrix should be {n}x{m}")
-        else:
-            return input_matrix
+    # Save and read graph as HTML file (on Streamlit Sharing)
+    try:
+        path = '/tmp'
+        net.save_graph(f'{path}/pyvis_graph.html')
+        HtmlFile = open(f'{path}/pyvis_graph.html', 'r', encoding='utf-8')
+
+    # Save and read graph as HTML file (locally)
+    except:
+        net.show('pyvis_graph.html')
+        HtmlFile = open('pyvis_graph.html', 'r', encoding='utf-8')
+
+    # Read the HTML file
+    source_code = HtmlFile.read()
+
+    return components.html(source_code, height=400)
 
 def main():
     st.title("Data Generator - Graph Based - Config Generator")
+
+    supernode_graph = Network(
+                height='400px',
+                width='100%',
+                bgcolor='white',
+                font_color='black',
+                directed=True,
+                neighborhood_highlight=True,
+            )
+    
+    subnode_graph = Network(
+                height='400px',
+                width='100%',
+                bgcolor='white',
+                font_color='black',
+                directed=True,
+                neighborhood_highlight=True,
+            )
 
     super_nodes_data = {}
 
@@ -64,22 +88,37 @@ def main():
 
         st.subheader(f"Super Node {i+1}")
 
-        n_nodes = st.number_input(f"Enter number of sub nodes for Super Node {i+1}", 1, step=1)
+        supernode_graph.add_node(i, label=f"Super Node {i+1}", group=i)
+
+        n_nodes = st.number_input(f"Enter number of sub nodes for Super Node {i+1}", 1, step=1, key=f"n_nodes_{i}")
 
         control_points = []
 
-        control_points_in = st.text_input(f"Enter comma separated control points for Super Node {i+1}")
+        control_points_in = st.text_input(f"Enter comma separated control points for Super Node {i+1}", key=f"control_points_{i}")
 
         if control_points_in:
             control_points = [float(x) for x in control_points_in.split(',')]
             bezier_curve(control_points, super_nodes_data['n_cycles'])
 
+        boundaries = []
+        for j in range(n_nodes):
+
+            subnode_graph.add_node(f"{i}_{j}", label=f"Sub Node {j+1}", group=i)
+
+            bounds = st.text_input(f"Enter comma separated bounds for Sub Node {j+1} for Super Node {i+1}")
+
+            if bounds:
+                bounds = [float(x) for x in bounds.split(',')]
+            else:
+                bounds = [0,1]
+
+            boundaries.append(bounds)
 
         node_type = st.selectbox(f"Select type for Super Node {i+1}", ['independent', 'dependent'])
 
         
         if node_type == 'dependent':
-            n_incoming_nodes = st.number_input(f"Enter number of incoming nodes for Super Node {i+1}", 1, step=1)
+            n_incoming_nodes = st.number_input(f"Enter number of incoming nodes for Super Node {i+1}", 1, step=1, key=f"n_incoming_nodes_{i}")
 
             inputs = []
 
@@ -87,17 +126,32 @@ def main():
                 
                 st.subheader(f"Incomming Node {j+1} for Super Node {i+1}")
 
-                input_supernode = st.selectbox(f"Incomming Node {j+1} for Super Node {i+1}", list(super_nodes_data['supernodes'].keys()))
+                input_supernode = st.selectbox(f"Incomming Node {j+1} for Super Node {i+1}", list(super_nodes_data['supernodes'].keys()), key=f"input_supernode_{i}_{j}")
 
                 if input_supernode is not None:
-                    correlation = st.number_input(f"Correlation for Incomming Node {j+1} for Super Node {i+1}", -1.0, 1.0, 0.0)
-                    weight = st.number_input(f"Weight for Incomming Node {j+1} for Super Node {i+1}", 0.0, 1.0, 0.0)
+
+                    supernode_graph.add_edge(input_supernode, i)
+
+                    correlation = st.number_input(f"Correlation for Incomming Node {j+1} for Super Node {i+1}", -1.0, 1.0, 0.0, key=f"correlation_{i}_{j}")
+                    weight = st.number_input(f"Weight for Incomming Node {j+1} for Super Node {i+1}", 0.0, 1.0, 0.0, key=f"weight_{i}_{j}")
                     
                     connections_main = []
                     for k in range(n_nodes):
-                        connection = st.text_input(f"Enter comma separated connections for Sub Node {k+1}")
+                        connection = st.text_input(f"Enter comma separated connections for Sub Node {k+1}", key=f"connection_{i}_{j}_{k}")
 
                         connections = list(int(x) for x in connection.split(',')) if connection else []
+
+                        if connections:
+                            for c in connections:
+
+                                # check if nodes exist
+                                if f"{input_supernode}_{c}" not in subnode_graph.nodes:
+                                    subnode_graph.add_node(f"{input_supernode}_{c}", label=f"Sub Node {c+1}", group=input_supernode)
+
+                                if f"{i}_{k}" not in subnode_graph.nodes:
+                                    subnode_graph.add_node(f"{i}_{k}", label=f"Sub Node {k+1}", group=i)
+
+                                subnode_graph.add_edge(f"{input_supernode}_{c}", f"{i}_{k}")
 
                         connections_main.append(connections)
 
@@ -118,16 +172,7 @@ def main():
             n_incoming_nodes = 0
             inputs = []
         
-        boundaries = []
-        for j in range(n_nodes):
-            bounds = st.text_input(f"Enter comma separated bounds for Sub Node {j+1} for Super Node {i+1}")
-
-            if bounds:
-                bounds = [float(x) for x in bounds.split(',')]
-            else:
-                bounds = [0,1]
-
-            boundaries.append(bounds)
+        
 
         super_nodes_data['supernodes'][i] = {
             'node_type': node_type,
@@ -138,8 +183,25 @@ def main():
             'inputs': inputs
         }
 
+    st.subheader("Super Node Graph")
 
+    supernode_vis_check = st.toggle("Visualize Super Node Graph")
 
+    if supernode_vis_check:
+        supernode_graph.save_graph('./pages/supernode_graph.html')
+        source_code = open('./pages/supernode_graph.html', 'r', encoding='utf-8').read()
+        components.html(source_code, height=400)
+
+    st.subheader("Sub Node Graph")
+
+    subnode_graph_check = st.toggle("Visualize Sub Node Graph")
+
+    if subnode_graph_check:
+        subnode_graph.save_graph('./pages/subnode_graph.html')
+        source_code = open('./pages/subnode_graph.html', 'r', encoding='utf-8').read()
+        components.html(source_code, height=400)
+
+    st.subheader("YAML Configuration File")
 
     # Convert the dictionary into a YAML formatted string
     yaml_config = yaml.dump(super_nodes_data)
