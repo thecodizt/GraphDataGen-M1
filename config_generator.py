@@ -136,6 +136,7 @@ def main():
                     weight = st.number_input(f"Weight for Incomming Node {j+1} for Super Node {i+1}", 0.0, 1.0, 0.0, key=f"weight_{i}_{j}")
                     
                     connections_main = []
+                    connection_graph = []
                     for k in range(n_nodes):
                         connection = st.text_input(f"Enter comma separated connections for Sub Node {k+1}", key=f"connection_{i}_{j}_{k}")
 
@@ -151,7 +152,11 @@ def main():
                                 if f"{i}_{k}" not in subnode_graph.nodes:
                                     subnode_graph.add_node(f"{i}_{k}", label=f"Sub Node {k+1}", group=i)
 
-                                subnode_graph.add_edge(f"{input_supernode}_{c}", f"{i}_{k}")
+                                # check if edge exists has_edge does not work
+                                
+                                if (f"{input_supernode}_{c}", f"{i}_{k}") not in connection_graph:
+                                    subnode_graph.add_edge(f"{input_supernode}_{c}", f"{i}_{k}")
+                                    connection_graph.append((f"{input_supernode}_{c}", f"{i}_{k}"))
 
                         connections_main.append(connections)
 
