@@ -88,8 +88,8 @@
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"font": {"color": "black"}, "group": 0, "id": "0_0", "label": "Sub Node 1", "shape": "dot"}, {"font": {"color": "black"}, "group": 0, "id": "0_1", "label": "Sub Node 2", "shape": "dot"}, {"font": {"color": "black"}, "group": 1, "id": "1_0", "label": "Sub Node 1", "shape": "dot"}, {"font": {"color": "black"}, "group": 1, "id": "1_1", "label": "Sub Node 2", "shape": "dot"}, {"font": {"color": "black"}, "group": 1, "id": "1_2", "label": "Sub Node 3", "shape": "dot"}]);
-                  edges = new vis.DataSet([{"arrows": "to", "from": "0_1", "to": "1_0"}, {"arrows": "to", "from": "0_1", "to": "1_1"}, {"arrows": "to", "from": "0_0", "to": "1_1"}, {"arrows": "to", "from": "0_0", "to": "1_2"}, {"arrows": "to", "from": "0_1", "to": "1_2"}]);
+                  nodes = new vis.DataSet([{"font": {"color": "black"}, "group": 0, "id": "0_0", "label": "Sub Node 1", "shape": "dot"}, {"font": {"color": "black"}, "group": 0, "id": "0_1", "label": "Sub Node 2", "shape": "dot"}, {"font": {"color": "black"}, "group": 0, "id": "0_2", "label": "Sub Node 3", "shape": "dot"}, {"font": {"color": "black"}, "group": 1, "id": "1_0", "label": "Sub Node 1", "shape": "dot"}, {"font": {"color": "black"}, "group": 1, "id": "1_1", "label": "Sub Node 2", "shape": "dot"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "0_0", "to": "1_0"}, {"arrows": "to", "from": "0_2", "to": "1_0"}, {"arrows": "to", "from": "0_1", "to": "1_1"}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });

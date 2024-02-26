@@ -143,22 +143,25 @@ def main():
                         connections = list(int(x) for x in connection.split(',')) if connection else []
 
                         if connections:
-                            for c in connections:
+                            for ind in range(len(connections)):
 
-                                # check if nodes exist
-                                if f"{input_supernode}_{c}" not in subnode_graph.nodes:
-                                    subnode_graph.add_node(f"{input_supernode}_{c}", label=f"Sub Node {c+1}", group=input_supernode)
+                                if connections[ind] == 1:
+                                    
+                                    # check if nodes exist
+                                    if f"{input_supernode}_{ind}" not in subnode_graph.nodes:
+                                        subnode_graph.add_node(f"{input_supernode}_{ind}", label=f"Sub Node {ind+1}", group=input_supernode)
 
-                                if f"{i}_{k}" not in subnode_graph.nodes:
-                                    subnode_graph.add_node(f"{i}_{k}", label=f"Sub Node {k+1}", group=i)
+                                    if f"{i}_{k}" not in subnode_graph.nodes:
+                                        subnode_graph.add_node(f"{i}_{k}", label=f"Sub Node {k+1}", group=i)
 
-                                # check if edge exists has_edge does not work
-                                
-                                if (f"{input_supernode}_{c}", f"{i}_{k}") not in connection_graph:
-                                    subnode_graph.add_edge(f"{input_supernode}_{c}", f"{i}_{k}")
-                                    connection_graph.append((f"{input_supernode}_{c}", f"{i}_{k}"))
+                                    # check if edge exists has_edge does not work
+                                    
+                                    if (f"{input_supernode}_{ind}", f"{i}_{k}") not in connection_graph:
+                                        subnode_graph.add_edge(f"{input_supernode}_{ind}", f"{i}_{k}")
+                                        connection_graph.append((f"{input_supernode}_{ind}", f"{i}_{k}"))
 
                         connections_main.append(connections)
+                    st.write(connections_main)
 
                     expected_lower_bound = st.number_input(f"Enter expected lower bound for Incomming node {j+1} for Super Node {i+1}")
                     expected_upper_bound = st.number_input(f"Enter expected upper bound for Incomming node {j+1} for Super Node {i+1}")
