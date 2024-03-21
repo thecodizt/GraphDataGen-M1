@@ -75,11 +75,20 @@ def main():
                 neighborhood_highlight=True,
             )
 
+    combined_graph = Network(
+                height='400px',
+                width='100%',
+                bgcolor='white',
+                font_color='black',
+                directed=True,
+                neighborhood_highlight=True,
+            )
+
     super_nodes_data = {}
 
-    super_nodes_data['n_supernodes'] = st.number_input("Enter number of super nodes", 1, step=1)
+    super_nodes_data['n_supernodes'] = st.number_input("Number of super nodes", 1, step=1)
 
-    super_nodes_data['n_cycles'] = st.number_input("Enter number of cycles", 100, step=100)
+    super_nodes_data['n_cycles'] = st.number_input("Number of cycles", 100, step=100)
 
     super_nodes_data['supernodes'] = {}
  
@@ -88,13 +97,14 @@ def main():
 
         st.subheader(f"Super Node {i+1}")
 
-        supernode_graph.add_node(i, label=f"Super Node {i+1}", group=i)
+        supernode_graph.add_node(f"{i}", label=f"Super Node {i+1}", group=i)
+        combined_graph.add_node(f"{i}", label=f"Super Node {i+1}", group=i, borderWidth=5, size=40)
 
-        n_nodes = st.number_input(f"Enter number of sub nodes for Super Node {i+1}", 1, step=1, key=f"n_nodes_{i}")
+        n_nodes = st.number_input(f"Number of SUB NODES for SUPER NODE {i+1}", 1, step=1, key=f"n_nodes_{i}")
 
         control_points = []
 
-        control_points_in = st.text_input(f"Enter comma separated control points for Super Node {i+1}", key=f"control_points_{i}")
+        control_points_in = st.text_input(f"Comma separated control points (between 0 and 1) for Super Node {i+1}", key=f"control_points_{i}")
 
         if control_points_in:
             control_points = [float(x) for x in control_points_in.split(',')]
@@ -104,8 +114,11 @@ def main():
         for j in range(n_nodes):
 
             subnode_graph.add_node(f"{i}_{j}", label=f"Sub Node {j+1}", group=i)
+            combined_graph.add_node(f"{i}_{j}", label=f"Sub Node {j+1}", group=i)
+            combined_graph.add_edge(f"{i}", f"{i}_{j}")
 
-            bounds = st.text_input(f"Enter comma separated bounds for Sub Node {j+1} for Super Node {i+1}")
+
+            bounds = st.text_input(f"Comma separated bounds <lower,upper> for Sub Node {j+1} for Super Node {i+1}")
 
             if bounds:
                 bounds = [float(x) for x in bounds.split(',')]
@@ -114,23 +127,24 @@ def main():
 
             boundaries.append(bounds)
 
-        node_type = st.selectbox(f"Select type for Super Node {i+1}", ['independent', 'dependent'])
+        node_type = st.selectbox(f"Type for Super Node {i+1}", ['independent', 'dependent'])
 
         
         if node_type == 'dependent':
-            n_incoming_nodes = st.number_input(f"Enter number of incoming nodes for Super Node {i+1}", 1, step=1, key=f"n_incoming_nodes_{i}")
+            n_incoming_nodes = st.number_input(f"Number of incoming nodes for Super Node {i+1}", 1, step=1, key=f"n_incoming_nodes_{i}")
 
             inputs = []
 
             for j in range(n_incoming_nodes):
                 
-                st.subheader(f"Incomming Node {j+1} for Super Node {i+1}")
+                st.subheader(f"Incomming Super Node {j+1} for Super Node {i+1}")
 
-                input_supernode = st.selectbox(f"Incomming Node {j+1} for Super Node {i+1}", list(super_nodes_data['supernodes'].keys()), key=f"input_supernode_{i}_{j}")
+                input_supernode = st.selectbox(f"Incomming Super Node", list(super_nodes_data['supernodes'].keys()), key=f"input_supernode_{i}_{j}")
 
                 if input_supernode is not None:
 
-                    supernode_graph.add_edge(input_supernode, i)
+                    supernode_graph.add_edge(f"{input_supernode}", f"{i}")
+                    combined_graph.add_edge(f"{input_supernode}", f"{i}")
 
                     correlation = st.number_input(f"Correlation for Incomming Node {j+1} for Super Node {i+1}", -1.0, 1.0, 0.0, key=f"correlation_{i}_{j}")
                     weight = st.number_input(f"Weight for Incomming Node {j+1} for Super Node {i+1}", 0.0, 1.0, 0.0, key=f"weight_{i}_{j}")
@@ -138,7 +152,7 @@ def main():
                     connections_main = []
                     connection_graph = []
                     for k in range(n_nodes):
-                        connection = st.text_input(f"Enter comma separated connections for Sub Node {k+1}", key=f"connection_{i}_{j}_{k}")
+                        connection = st.text_input(f"Comma separated connections (binary list of size N(subnodes of incoming supernode)) for Sub Node {k+1}", key=f"connection_{i}_{j}_{k}")
 
                         connections = list(int(x) for x in connection.split(',')) if connection else []
 
@@ -158,23 +172,24 @@ def main():
                                     
                                     if (f"{input_supernode}_{ind}", f"{i}_{k}") not in connection_graph:
                                         subnode_graph.add_edge(f"{input_supernode}_{ind}", f"{i}_{k}")
+                                        combined_graph.add_edge(f"{input_supernode}_{ind}", f"{i}_{k}")
                                         connection_graph.append((f"{input_supernode}_{ind}", f"{i}_{k}"))
 
                         connections_main.append(connections)
                     st.write(connections_main)
 
-                    expected_lower_bound = st.number_input(f"Enter expected lower bound for Incomming node {j+1} for Super Node {i+1}")
-                    expected_upper_bound = st.number_input(f"Enter expected upper bound for Incomming node {j+1} for Super Node {i+1}")
-                    expected_mean = st.number_input(f"Enter expected mean for Incomming node {j+1} for Super Node {i+1}")
+                    # expected_lower_bound = st.number_input(f"Enter expected lower bound for Incomming node {j+1} for Super Node {i+1}")
+                    # expected_upper_bound = st.number_input(f"Enter expected upper bound for Incomming node {j+1} for Super Node {i+1}")
+                    # expected_mean = st.number_input(f"Enter expected mean for Incomming node {j+1} for Super Node {i+1}")
 
                     inputs.append({
                         'input_supernode': input_supernode,
                         'correlation': correlation,
                         'weight': weight,
                         'connections': connections,
-                        'expected_lower_bound': expected_lower_bound,
-                        'expected_upper_bound': expected_upper_bound,
-                        'expected_mean': expected_mean
+                        # 'expected_lower_bound': expected_lower_bound,
+                        # 'expected_upper_bound': expected_upper_bound,
+                        # 'expected_mean': expected_mean
                     })
         else:
             n_incoming_nodes = 0
@@ -207,6 +222,15 @@ def main():
     if subnode_graph_check:
         subnode_graph.save_graph('./pages/subnode_graph.html')
         source_code = open('./pages/subnode_graph.html', 'r', encoding='utf-8').read()
+        components.html(source_code, height=400)
+
+    st.subheader("Combined Node Graph")
+
+    combined_graph_check = st.toggle("Visualize Combined Graph")
+
+    if combined_graph_check:
+        combined_graph.save_graph('./pages/combined_graph.html')
+        source_code = open('./pages/combined_graph.html', 'r', encoding='utf-8').read()
         components.html(source_code, height=400)
 
     st.subheader("YAML Configuration File")
